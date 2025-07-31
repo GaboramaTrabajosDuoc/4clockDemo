@@ -1,0 +1,262 @@
+VISION 1:
+
+Claro, Sergio. Aquí tienes una **radiografía funcional y tecnológica** de tu aplicación *4clockApp* basada en todo lo que hemos trabajado:
+
+---
+
+## 🧠 **Funcionalidad de la Aplicación**
+
+### 🎯 **Objetivo central**
+
+Una app híbrida (web/móvil) que permite organizar y personalizar tareas, rutinas y días de la semana, con flexibilidad total para adaptarse al flujo de vida del usuario (personal o profesional).
+
+---
+
+### 🧩 **Pantallas y módulos clave**
+
+#### ✅ **TaskScreen (núcleo del MVP)**
+
+* **Crear tareas** desde un botón flotante/modal
+* **Editar tareas** (desde el mismo modal u opción extendida)
+* **Completar tareas** (con confirmación)
+* **Eliminar tareas** (con confirmación)
+* **Expandir tareas** con doble clic para ver descripción larga y más acciones
+* **Botón de rutina**: convierte una tarea en conjunto de subtareas (rutina)
+* **Ordenamiento**:
+
+  1. Por prioridad
+  2. Por fecha
+  3. Por orden asignado por el usuario
+  4. Guardar el orden como “día”
+
+#### 🧱 **Otros módulos en roadmap**
+
+* **HabitMaker**:
+
+  * Crear hábitos agrupando tareas
+  * Ver progreso por hábito
+  * Crear rutinas desde hábitos
+* **Calendario**:
+
+  * Ver tareas por día/semana/mes
+  * Asignar tareas a fechas
+  * Drag and drop entre días
+* **Workshop (modal central)**:
+
+  * Edición global de tareas, rutinas y días
+  * Accesible desde distintos lugares
+
+---
+
+## ⚙️ **Tecnología usada**
+
+### 🧑‍💻 **Frontend**
+
+* **React Native** (Expo)
+* **Expo Router** para navegación tipo file-based
+* **Tailwind CSS** (con NativeWind)
+* **React Navigation** (por debajo de Expo Router)
+* **React Native Modal** para UI emergente
+
+### 🗄️ **Backend**
+
+* **Supabase**
+
+  * PostgreSQL como base de datos
+  * Realtime (opcional)
+  * Autenticación (a futuro)
+  * REST API autogenerada
+* **Tabla activa**: `Task`
+
+  * `id`, `title`, `description`, `priority`, `completed`, `number`, etc.
+
+---
+
+## 🧪 Estado actual del MVP
+
+* Modal funcional de creación de tareas
+* Diseño modular en componentes (`Header`, `Footer`, `TaskItem`, etc.)
+* Supabase integrado pero aún **no guarda tareas con éxito** (estamos depurando ese insert)
+* Diseño pensado para escalar con orden lógico y separaciones claras (`src/screens`, `src/items`, `src/props`, etc.)
+
+# 🗂️ Estructura de Base de Datos – Task Organizer App
+
+## 👤 `User`
+
+Usuario autenticado de Supabase. Cada entidad principal pertenece a un usuario.
+
+| Campo        | Tipo      | Descripción                  |
+| ------------ | --------- | ---------------------------- |
+| `id`         | UUID      | ID del usuario (`auth.uid`)  |
+| `email`      | Text      | Email del usuario            |
+| `nickname`   | Text      | Apodo del usuario (opcional) |
+| `created_at` | Timestamp | Fecha de creación            |
+| `updated_at` | Timestamp | Última actualización         |
+
+---
+
+## 🧱 `Habit_category`
+
+Categorías para agrupar tareas y hábitos por áreas de enfoque (salud, trabajo, etc.).
+
+| Campo        | Tipo      | Descripción             |
+| ------------ | --------- | ----------------------- |
+| `id`         | BIGINT    | Clave primaria          |
+| `name`       | Text      | Nombre de la categoría  |
+| `purpose`    | Text      | Descripción opcional    |
+| `icon`       | Text      | Nombre o emoji de ícono |
+| `color`      | Text      | Color en hex o nombre   |
+| `created_at` | Timestamp | Fecha de creación       |
+| `updated_at` | Timestamp | Última modificación     |
+
+---
+
+## 🔁 `Habit`
+
+Puntúa el progreso del usuario en base a las tareas realizadas.
+
+| Campo          | Tipo | Descripción                      |
+| -------------- | ---- | -------------------------------- |
+| `id`           | UUID | Clave primaria                   |
+| `title`        | Text | Título del hábito                |
+| `porpouse`     | Text | Descripción opcional             |
+| `priority`     | Enum | Must, Should, Could, Would, None |
+| `habit_points` | Int  | Puntos acumulados                |
+| `user_id`      | UUID | FK a `User`                      |
+
+---
+
+## ✅ `Task`
+
+Unidad mínima de acción. Puede pertenecer a una rutina y/o hábito.
+
+| Campo               | Tipo      | Descripción                            |
+| ------------------- | --------- | -------------------------------------- |
+| `id`                | BIGINT    | Clave primaria                         |
+| `title`             | Text      | Título de la tarea                     |
+| `description`       | Text      | Descripción opcional                   |
+| `priority`          | Enum      | Must, Should, Could, Would, None       |
+| `habit_category_id` | BIGINT    | FK a `Habit_category`                  |
+| `completed`         | Boolean   | Tarea completada o no                  |
+| `completed_at`      | Timestamp | Fecha de completado                    |
+| `list_pos`          | Int       | Posición en la lista general           |
+| `habit_id`          | UUID      | FK a `Habit`                           |
+| `habit_list_pos`    | Int       | Posición dentro del hábito (si aplica) |
+| `user_id`           | UUID      | FK a `User`                            |
+
+---
+
+## 🔃 `Routine`
+
+Agrupa tareas que se ejecutan juntas, como bloques reutilizables.
+
+| Campo               | Tipo      | Descripción                 |
+| ------------------- | --------- | --------------------------- |
+| `id`                | UUID      | Clave primaria              |
+| `title`             | Text      | Título de la rutina         |
+| `description`       | Text      | Descripción opcional        |
+| `priority`          | Enum      | Prioridad asignada          |
+| `habit_category_id` | BIGINT    | FK a `Habit_category`       |
+| `completed`         | Boolean   | Estado de completado        |
+| `task_id`           | BIGINT    | Obsoleto (puede eliminarse) |
+| `task_list_pos`     | Int       | Obsoleto (puede eliminarse) |
+| `created_at`        | Timestamp | Fecha de creación           |
+| `updated_at`        | Timestamp | Última modificación         |
+| `user_id`           | UUID      | FK a `User`                 |
+
+---
+
+## ⏱️ `Session`
+
+Agrupa rutinas para organizar bloques de trabajo (mañana, tarde, noche).
+
+| Campo          | Tipo      | Descripción                  |
+| -------------- | --------- | ---------------------------- |
+| `id`           | UUID      | Clave primaria               |
+| `title`        | Text      | Título de la sesión          |
+| `completed`    | Boolean   | Estado completado            |
+| `completed_at` | Timestamp | Fecha completado (si aplica) |
+| `created_at`   | Timestamp | Fecha de creación            |
+| `updated_at`   | Timestamp | Última modificación          |
+| `user_id`      | UUID      | FK a `User`                  |
+
+---
+
+## 📦 Relaciones intermedias
+
+### `Routine_Task`
+
+Vincula tareas dentro de una rutina con orden.
+
+| Campo        | Tipo   | Descripción        |
+| ------------ | ------ | ------------------ |
+| `id`         | UUID   | Clave primaria     |
+| `routine_id` | UUID   | FK a `Routine`     |
+| `task_id`    | BIGINT | FK a `Task`        |
+| `position`   | Int    | Orden en la rutina |
+
+---
+
+### `Routine_Session`
+
+Vincula rutinas dentro de una sesión con orden.
+
+| Campo        | Tipo | Descripción        |
+| ------------ | ---- | ------------------ |
+| `id`         | UUID | Clave primaria     |
+| `routine_id` | UUID | FK a `Routine`     |
+| `session_id` | UUID | FK a `Session`     |
+| `position`   | Int  | Orden en la sesión |
+
+---
+
+## 🔐 Seguridad
+
+* RLS activado en todas las tablas sensibles (`Task`, `Routine`, `Session`, `Habit`)
+* Cada fila está asociada a un `user_id`
+* Políticas: los usuarios solo pueden acceder a sus propios datos (`auth.uid()`)
+
+---Tree de la aplicacion
+
+├─ /4clockApp
+  |─/app
+    |─layout.tsx
+    |─html.tsx
+    |─not-found.tsx
+    |─index.tsx
+  |─/assets
+    |─fonts
+    |─images
+  |─/db
+    |─/queries
+      |─model.sql
+      |─rls-policies.sql
+  |─/lib
+    |─supabase.ts
+  |─/public
+    |─logo.ico
+  |─/src
+    |─/api
+    |─/components
+      |─/assistant
+      |─/items
+        |─footerItem.tsx
+        |─headerItem.tsx
+      |─/modals
+        |─addTask.tsx
+        |─taskModal.tsx
+      |─/props
+        |─/taskProps
+          |─addTaskProp.tsx
+          |─progressBar.tsx
+          |─taslProp.tsx
+    |─/screens
+    |─/service
+    |─/styles
+    |─/types
+      |─habit.d.ts
+      |─task.d.ts
+      |─user.d.ts
+    |─/utils
+      |-formatter.ts
+      |-sorter.ts

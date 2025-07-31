@@ -1,5 +1,5 @@
 {
-  "name": "my-expo-app",
+  "name": "4clockapp",
   "version": "1.0.0",
   "main": "expo-router/entry",
   "scripts": {
@@ -12,8 +12,12 @@
     "web": "expo start --web"
   },
   "dependencies": {
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/sortable": "^10.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
     "@expo/vector-icons": "^14.0.0",
     "@react-navigation/native": "^7.0.3",
+    "@supabase/supabase-js": "^2.52.1",
     "expo": "^53.0.20",
     "expo-constants": "~17.1.4",
     "expo-linking": "~7.1.4",
@@ -21,12 +25,10 @@
     "expo-status-bar": "~2.2.3",
     "expo-system-ui": "~5.0.6",
     "expo-web-browser": "~14.2.0",
-    "nativewind": "latest",
+    "nativewind": "^4.1.23",
     "react": "19.0.0",
     "react-dom": "19.0.0",
     "react-native": "0.79.5",
-    "react-native-gesture-handler": "~2.24.0",
-    "react-native-reanimated": "~3.17.4",
     "react-native-safe-area-context": "5.4.0",
     "react-native-screens": "~4.11.1",
     "react-native-web": "^0.20.0"
@@ -40,7 +42,7 @@
     "eslint-config-prettier": "^10.1.2",
     "prettier": "^3.2.5",
     "prettier-plugin-tailwindcss": "^0.5.11",
-    "tailwindcss": "^3.4.0",
+    "tailwindcss": "^3.4.17",
     "typescript": "~5.8.3"
   },
   "private": true
