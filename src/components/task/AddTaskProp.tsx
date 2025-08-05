@@ -12,6 +12,20 @@ export interface TaskData {
   list_pos: number;
 }
 
+//oculta las tareas completadas
+export const completeTask = async (id: number) => {
+  const {error} = await supabase 
+    .from('task')
+    .update({ completed: true, completed_at: new Date().toISOString()})
+    .eq('id', id);
+
+  if (error) {
+    console.error('Error al completar tarea: ', error);
+    throw error;
+  }
+}; 
+
+//añade tareas
 export const addTask = async (task: TaskData) => {
   try {
     const taskWithUser = {
@@ -22,7 +36,7 @@ export const addTask = async (task: TaskData) => {
     console.log('Intentando guardar tarea...', taskWithUser);
     const { data, error } = await supabase
       .from('task')
-      .insert(taskWithUser)
+      .insert([taskWithUser])
       .select();
 
     if (error) {
@@ -37,7 +51,7 @@ export const addTask = async (task: TaskData) => {
   }
 };
 
-
+//obtiene todas las tareas en la base de datos
 export const getTasks = async (): Promise<Task[]> => {
   try {
     const { data, error } = await supabase

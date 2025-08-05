@@ -33,14 +33,16 @@ const handlePress = () => {
 
         {/* Acciones */}
         <View style={styles.actionRow}>
-          <TouchableOpacity onPress={() => onComplete(task.id)} style={styles.button}>
+          <TouchableOpacity onPress={() => { console.log('onComplete llegó:', onComplete); onComplete(task.id);}}
+            style={styles.button}
+          >
             <Text>✅</Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => onDelete(task.id)} style={styles.button}>
+          <TouchableOpacity onPress={() => { console.log('onDelete llegó:', onDelete); onDelete(task.id);}} style={styles.button}>
             <Text>❌</Text>
           </TouchableOpacity>
           {expanded && (
-            <TouchableOpacity onPress={() => onEdit(task.id)} style={styles.button}>
+            <TouchableOpacity onPress={() => { console.log('onEdit llegó:', onEdit); onEdit(task.id);}} style={styles.button}>
               <Text>✏️</Text>
             </TouchableOpacity>
           )}

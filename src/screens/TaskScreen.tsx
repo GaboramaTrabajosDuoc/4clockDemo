@@ -15,51 +15,27 @@ import TaskModal from '../components/modal/modalPaths/taskModal';
 import Header from '../components/layout/headerItem';
 import Footer from '../components/layout/footerItem';
 import DragTask from '../components/task/DragTask';
-import { addTask, getTasks } from '../components/task/AddTaskProp';
-
+import { addTask, getTasks, completeTask } from '../components/task/AddTaskProp';
+import useTasks from '../components/hooks/useTasks';
 
 function TaskScreen() {
   const [showTaskModal, setShowTaskModal] = useState(false);
-  const [taskList, setTaskList] = useState<Task[]>(defaultTasks.map(makeDefTask));
+
+  const {
+    tasks: taskList,
+    setTasks: setTaskList,
+    completeTask: handleComplete, // corregido: era `completedTask`
+    reload: loadTask,
+  } = useTasks();
+
   const sensor = useSensors(useSensor(PointerSensor));
 
-  const loadTask = async () => {
-  try {
-    let taskFromDB = await getTasks();
-
-    // Si no hay tareas, insertar las default
-    if (!taskFromDB || taskFromDB.length === 0) {
-      console.log('No hay tareas, insertando tareas por defecto en Supabase...');
-
-      for (const task of defaultTasks) {
-        await addTask(task);
-      }
-
-      taskFromDB = await getTasks(); // Recargar desde la base de datos
-    }
-
-    setTaskList(taskFromDB);
-  } catch (error) {
-    console.error('Error al cargar tareas: ', error);
-  }
-};
-
-//completar, eliminar editar
-
-  const handleComplete = (id: number) => {
-    setTaskList(prev => 
-      prev.map(t => 
-      t.id === id ? { ...t, completed: true, completed_at: new Date().toISOString() } : t    )
-    ); 
-  console.log('Tarea completada: ', id);
-};
-
   const handleDelete = (id: number) => {
-    console.log("tarea eliminada: ", id);
+    console.log('Tarea eliminada: ', id);
   };
 
   const handleEdit = (id: number) => {
-    console.log('Edit tarea:', id);
+    console.log('Editar tarea:', id);
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -75,12 +51,12 @@ function TaskScreen() {
     }));
 
     setTaskList(reordered);
-    console.log('nuevo orden:', reordered.map(t => `${t.list_pos}) ${t.title}`));
+    console.log('Nuevo orden:', reordered.map((t) => `${t.list_pos}) ${t.title}`));
   };
 
   useEffect(() => {
     loadTask();
-  }, []);
+  }, [loadTask]);
 
   const renderButton = (text: string, onPress: () => void) => (
     <TouchableOpacity style={styles.button} onPress={onPress}>
@@ -107,10 +83,10 @@ function TaskScreen() {
           onDragEnd={handleDragEnd}
         >
           <SortableContext
-            items={taskList.map(task => task.id)}
+            items={taskList.map((task) => task.id)}
             strategy={verticalListSortingStrategy}
           >
-            {taskList.map(task => (
+            {taskList.filter((t) => !t.completed).map((task) => (
               <DragTask
                 key={task.id}
                 task={task}
@@ -126,7 +102,10 @@ function TaskScreen() {
       <TaskModal
         visible={showTaskModal}
         onClose={() => setShowTaskModal(false)}
-        onSave={() => { setShowTaskModal(false); void loadTask(); }}
+        onSave={() => {
+          setShowTaskModal(false);
+          void loadTask();
+        }}
         taskCount={taskList.length}
       />
 
