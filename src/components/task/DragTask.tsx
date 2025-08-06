@@ -1,5 +1,5 @@
-import React, { forwardRef } from 'react';
-import { Platform, View, ViewProps } from 'react-native';
+import React, { useMemo } from 'react';
+import { Platform, View } from 'react-native';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { TaskItemProps } from './taskProp';
@@ -9,27 +9,9 @@ type Props = Omit<TaskItemProps, 'onLongPress'>;
 
 function DragTask(props: Props) {
   const { task, onComplete, onDelete, onEdit } = props;
+  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: task.id });
 
-  // only to call useSortable once and avoid unnecessary re-renders
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-  } = useSortable({ id: task.id });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-  };
-
-  // Component to filter props if web
-  const DraggableView = forwardRef<any, ViewProps>((viewProps, ref) => {
-    return <View ref={ref} {...viewProps} />;
-  });
-
-  //in case of native platforms, we can directly use View
+  // Si no es web, devolvemos un componente simple sin dnd-kit.
   if (Platform.OS !== 'web') {
     return (
       <View>
@@ -38,32 +20,38 @@ function DragTask(props: Props) {
     );
   }
 
-  // props to filter out if web
-  const excludedProps = [
+  // --- El código de aquí en adelante SÓLO se ejecuta en la web ---
+  const excludedProps = useMemo(() => [
     'role',
     'tabIndex',
     'aria-disabled',
     'aria-pressed',
     'aria-roledescription',
     'aria-describedby',
-  ];
+  ], []);
 
-  // Create new object without trublesome props
-  const filteredAttributes = Object.fromEntries(
+  const filteredAttributes = useMemo(() => Object.fromEntries(
     Object.entries(attributes).filter(([key]) => !excludedProps.includes(key))
-  );
+  ), [attributes, excludedProps]);
 
+  const style = useMemo(() => ({
+    transform: transform ? CSS.Transform.toString(transform) : undefined,
+    transition,
+    touchAction: 'none',
+  }), [transform, transition]);
+
+  // Para la versión web, devolvemos el componente con todas las props y refs de dnd-kit.
+  // Como estamos en un contexto web, TypeScript no se quejará del ref.
   return (
-    <DraggableView
+    <div
       ref={setNodeRef}
       style={style}
-      {...filteredAttributes} 
+      {...filteredAttributes}
       {...listeners}
     >
       <TaskItem task={task} onComplete={onComplete} onDelete={onDelete} onEdit={onEdit} />
-    </DraggableView>
+    </div>
   );
 }
 
-//react.memo to prevent unnecessary re-renders
 export default React.memo(DragTask);

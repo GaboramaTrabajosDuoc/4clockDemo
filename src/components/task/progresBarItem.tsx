@@ -1,5 +1,5 @@
-import React from 'react';
-import { Text, View } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { Text, View, Animated, StyleSheet } from 'react-native';
 
 interface ProgressBarProps {
   total: number;
@@ -7,18 +7,73 @@ interface ProgressBarProps {
 }
 
 function ProgressBar({ total, completed }: ProgressBarProps) {
-  const percentage = (completed / total) * 100;
+  const animatedWidth = useRef(new Animated.Value(0)).current;
+  const percentage = total > 0 ? (completed / total) * 100 : 0;
+
+  useEffect(() => {
+    Animated.spring(animatedWidth, {
+      toValue: percentage,
+      useNativeDriver: false,
+      tension: 10,
+      friction: 8
+    }).start();
+  }, [percentage]);
+
+  // Color basado en el progreso
+  const getColor = () => {
+    if (percentage < 30) return '#ff5252'; // Rojo para bajo progreso
+    if (percentage < 70) return '#ffd740'; // Amarillo para progreso medio
+    return '#4caf50'; // Verde para buen progreso
+  };
 
   return (
-    <View style={{ flex: 1, width: '100%', marginTop: 8 }}>
-      <View style={{ height: 10, backgroundColor: '#e0e0e0', borderRadius: 5, overflow: 'hidden' }}>
-        <View style={{ width: `${percentage}%`, height: '100%', backgroundColor: '#4caf50' }} />
+    <View style={styles.container}>
+      <View style={styles.barContainer}>
+        <Animated.View 
+          style={[
+            styles.progressBar,
+            { 
+              width: animatedWidth.interpolate({
+                inputRange: [0, 100],
+                outputRange: ['0%', '100%']
+              }),
+              backgroundColor: getColor()
+            }
+          ]} 
+        />
       </View>
-      <Text style={{ fontSize: 12, marginTop: 4 }}>
-        {completed} de {total} tareas completadas
+      <Text style={styles.text}>
+        {completed} de {total} tareas completadas ({percentage.toFixed(0)}%)
       </Text>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    width: '100%',
+    marginTop: 8,
+  },
+  barContainer: {
+    height: 12,
+    backgroundColor: '#e0e0e0',
+    borderRadius: 6,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#ccc',
+  },
+  progressBar: {
+    height: '100%',
+    borderRadius: 6,
+  },
+  text: {
+    fontSize: 12,
+    marginTop: 4,
+    textAlign: 'center',
+    fontWeight: '600',
+    color: '#333'
+  }
+});
 
 export default ProgressBar;

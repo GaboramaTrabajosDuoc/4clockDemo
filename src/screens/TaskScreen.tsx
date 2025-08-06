@@ -20,23 +20,41 @@ import useTasks from '../components/hooks/useTasks';
 
 function TaskScreen() {
   const [showTaskModal, setShowTaskModal] = useState(false);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
 
   const {
     tasks: taskList,
     setTasks: setTaskList,
-    completeTask: handleComplete, // corregido: era `completedTask`
+    completeTask: handleComplete,
+    deleteTask,
+    editTask,
     reload: loadTask,
   } = useTasks();
 
-  const sensor = useSensors(useSensor(PointerSensor));
-
-  const handleDelete = (id: number) => {
-    console.log('Tarea eliminada: ', id);
+  const handleDelete = async (id: number) => {
+    try {
+      await deleteTask(id);
+      loadTask(); // Reload the task list
+    } catch (error) {
+      console.error('Error al eliminar la tarea:', error);
+    }
   };
 
   const handleEdit = (id: number) => {
-    console.log('Editar tarea:', id);
+    const taskToEdit = taskList.find(task => task.id === id);
+    if (taskToEdit) {
+      setEditingTask(taskToEdit);
+      setShowTaskModal(true);
+    }
   };
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    })
+  );
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
@@ -64,9 +82,17 @@ function TaskScreen() {
     </TouchableOpacity>
   );
 
+  // Funciones de ordenamiento
+  const handleSort = (sorted: Task[]) => {
+    setTaskList(sorted.map((task, idx) => ({
+      ...task,
+      list_pos: idx + 1,
+    })));
+  };
+
   return (
     <SafeAreaView style={{ flex: 1 }}>
-      <Header />
+      <Header onSort={handleSort} tasks={taskList} />
 
       <View style={styles.buttonContainer}>
         {renderButton('+ Nueva Tarea', () => setShowTaskModal(true))}
@@ -79,7 +105,7 @@ function TaskScreen() {
       <View style={{ flex: 1 }}>
         <DndContext
           collisionDetection={closestCenter}
-          sensors={sensor}
+          sensors={sensors}
           onDragEnd={handleDragEnd}
         >
           <SortableContext
@@ -87,6 +113,7 @@ function TaskScreen() {
             strategy={verticalListSortingStrategy}
           >
             {taskList.filter((t) => !t.completed).map((task) => (
+              //to show unfinished tasks
               <DragTask
                 key={task.id}
                 task={task}
@@ -101,12 +128,17 @@ function TaskScreen() {
 
       <TaskModal
         visible={showTaskModal}
-        onClose={() => setShowTaskModal(false)}
+        onClose={() => {
+          setShowTaskModal(false);
+          setEditingTask(null);
+        }}
         onSave={() => {
           setShowTaskModal(false);
+          setEditingTask(null);
           void loadTask();
         }}
         taskCount={taskList.length}
+        taskState={editingTask}
       />
 
       <Footer />

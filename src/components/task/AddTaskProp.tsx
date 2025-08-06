@@ -69,3 +69,37 @@ export const getTasks = async (): Promise<Task[]> => {
     throw error;
   }
 };
+
+// Eliminar una tarea
+export const deleteTask = async (id: number) => {
+  try {
+    const { error } = await supabase
+      .from('task')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      throw error;
+    }
+  } catch (error) {
+    console.error('Error al eliminar la tarea:', error);
+    throw error;
+  }
+};
+
+// Editar una tarea
+export const updateTask = async (id: number, updates: Partial<TaskData>) => {
+  try {
+    const { error } = await supabase
+      .from('task')
+      .update(updates)
+      .eq('id', id);
+
+    if (error) {
+      throw error;
+    }
+  } catch (error) {
+    console.error('Error al actualizar la tarea:', error);
+    throw error;
+  }
+};
